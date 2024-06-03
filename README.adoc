@@ -1,0 +1,54 @@
+= Vanguard Guard
+:experimental:
+:pwsh-prefix-mgmt: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/
+
+A simple utility to attempt to prevent Vanguard from running _all_ the time, without you having to manually enable/disable it.
+
+NOTE: Vanguard will only be disabled once this script has run at least once, and will not be disabled if the script is terminated prematurely.
+
+One of the big talking points around Riot Games' Vanguard anti-cheat is that it runs at all times, even when a Riot Games game has not been launched that boot. Riot Games themselves have suggested that Vanguard must launch with Windows to operate. However, it appears to me that this is not the case, and is instead an oversimplification to avoid having to explain to non-technical users how to start/stop a driver, as the game behaves just fine if you start the driver yourself later. This script does that for you.
+
+If you so desire, you are also welcome to DIY; the relevant cmdlets are {pwsh-prefix-mgmt}/start-service[`Start-Service`^], {pwsh-prefix-mgmt}/stop-service[`Stop-Service`^], and {pwsh-prefix-mgmt}/set-service[`Set-Service`^] (to enable/disable).
+
+== Overview
+. Enables and starts services `vgc.exe` and `vgk.sys`.
+. Launches the Riot Client with the specified parameters and awaits exit.
+. Stops and disables services `vgc.exe` and `vgk.sys`.
+
+IMPORTANT: I am not a kernel/driver expert, and it's possible that Riot is doing something else I haven't noticed. 
+
+== Requirements
+* Current version of https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows[PowerShell Core^]
+* A Riot Games game (duh)
+
+== Use
+. Place `VanguardGuard.ps1` somewhere on your system (e.g. `%USERPROFILE%`).
+. Create a shortcut on your desktop as follows:
++
+[,powershell]
+----
+pwsh -ExecutionPolicy Bypass -File <Path to VanguardGuard.ps1> <Parameters>
+----
+
+. Change execution privileges:
+.. Right-Click the newly created shortcut and select btn:[Properties].
+.. Click btn:[Advanced].
+.. Check btn:[Run as Administrator].
+.. Click btn:[OK].
+.. Click btn:[OK].
+
+=== Parameters
+NOTE: If you are trying to run League of Legends from the default install location, you shouldn't need these.
+
+[,powershell]
+----
+VanguardGuard.ps1 [-RiotClientPath "C:\Riot Games\League of Legends\Riot Client\RiotClientServices.exe"] [-Product league_of_legends] [-StopBackoffTimer 5] [-StopRetry 10]
+----
+
+`-RiotClientPath`:: The path to `RiotClientServices.exe` on your system. By default, this is in `C:\Riot Games\League of Legends\Riot Client`.
+`-Product`:: The name of the game to launch. Can be determined from the shortcut installed by Riot, but some known options are:
++
+* `league_of_legends`
+* `vanguard`
+`-StopBackoffTimer`:: The number of seconds to wait between stop attempts.
+`-StopRetry`:: The number of times to retry stopping services.
